@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DueReady AI — Due Diligence Record</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root{
+    --ink:#1B2E2E;
+    --paper:#EDE6D6;
+    --paper-2:#E1D8C2;
+    --flag:#C24A1F;
+    --flag-soft:#EBD0BE;
+    --slate:#5B6661;
+    --slate-light:#8B958E;
+    --sage:#4F6650;
+    --sage-soft:#DCE3D5;
+    --rust:#8C2F1B;
+    --rust-soft:#E8CFC2;
+    --petrol:#1F4B4D;
+    --petrol-soft:#D6E2DF;
+    --line:#C9BD9F;
+    --white:#FAF7EE;
+    --shadow: 0 1px 2px rgba(27,46,46,0.06), 0 4px 14px rgba(27,46,46,0.08);
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:'Archivo', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(27,46,46,0.025) 0px, rgba(27,46,46,0.025) 1px, transparent 1px, transparent 3px);
+  }
+  .app{
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 24px 32px 80px;
+  }
+
+  /* ---------- Header ---------- */
+  .topbar{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    margin-bottom: 20px;
+    gap: 24px;
+    flex-wrap: wrap;
+    border-bottom: 3px double var(--ink);
+    padding-bottom: 14px;
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{
+    width:38px; height:38px; flex-shrink:0;
+    border: 2px solid var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Mono', monospace; font-size:10px; font-weight:700; color:var(--ink);
+    transform: rotate(-4deg);
+  }
+  .brand-name{ font-family:'Oswald', sans-serif; font-weight:600; font-size: 20px; letter-spacing: 0.01em; text-transform: uppercase; }
+  .brand-tag{ font-size: 10px; color: var(--slate); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; font-family:'Space Mono', monospace; }
+  .org-select{ text-align:right; }
+  .org-name{ font-weight:600; font-size: 14px; font-family:'Oswald', sans-serif; letter-spacing:0.01em; }
+  .org-meta{ font-size: 11.5px; color: var(--slate); margin-top: 2px; font-family:'Space Mono', monospace; }
+
+  /* ---------- Mode switch ---------- */
+  .mode-switch{
+    display:flex;
+    gap: 0;
+    margin-bottom: 22px;
+    width: fit-content;
+    border: 1.5px solid var(--ink);
+  }
+  .mode-btn{
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 20px;
+    cursor:pointer;
+    color: var(--ink);
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    font-family:'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .mode-btn + .mode-btn{ border-left: 1.5px solid var(--ink); }
+  .mode-btn.active{ background: var(--ink); color: var(--paper); }
+
+  /* ---------- Cycle Nav (manifest strip) ---------- */
+  .cycle-wrap{
+    display:flex; align-items:center; gap: 32px;
+    background: var(--white); border: 1.5px solid var(--ink);
+    padding: 20px 26px; margin-bottom: 22px; box-shadow: var(--shadow);
+    position:relative;
+  }
+  .cycle-svg-holder{ flex-shrink:0; }
+  .cycle-info{ flex:1; min-width:0; }
+  .cycle-eyebrow{ font-family:'Space Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--flag); margin-bottom: 6px; }
+  .cycle-title{ font-family:'Oswald', sans-serif; font-size: 24px; font-weight: 600; margin: 0 0 5px; letter-spacing: 0.005em; text-transform: uppercase; }
+  .cycle-desc{ font-size: 13px; color: var(--slate); line-height:1.5; max-width: 540px; margin:0; }
+  .cycle-source{ font-size: 10px; color: var(--slate-light); margin-top: 9px; font-family:'Space Mono', monospace; }
+
+  .stage-dot{ cursor:pointer; transition: transform 0.15s ease; }
+  .stage-dot:hover{ transform: scale(1.06); }
+  .stage-dot-bg{ fill: var(--paper-2); stroke: var(--ink); stroke-width:1.5; }
+  .stage-dot.active .stage-dot-bg{ fill: var(--flag); stroke: var(--flag); }
+  .stage-dot.done .stage-dot-bg{ fill: var(--sage-soft); stroke: var(--sage); }
+  .stage-dot-label{ font-family:'Space Mono', monospace; font-size: 12px; font-weight: 700; fill: var(--ink); pointer-events:none; }
+  .stage-dot.active .stage-dot-label{ fill: var(--white); }
+  .stage-dot.done .stage-dot-label{ fill: var(--sage); }
+
+  /* ---------- Stage tabs ---------- */
+  .stage-tabs{ display:flex; gap: 0; margin-bottom: 22px; border-bottom: 1.5px solid var(--ink); overflow-x: auto; }
+  .stage-tab{
+    font-size: 12px; font-weight: 600; color: var(--slate); padding: 10px 16px; cursor:pointer;
+    border-bottom: 3px solid transparent; white-space: nowrap; transition: color 0.15s ease;
+    font-family:'Space Mono', monospace; text-transform: uppercase; letter-spacing:0.02em;
+  }
+  .stage-tab:hover{ color: var(--ink); }
+  .stage-tab.active{ color: var(--ink); border-bottom-color: var(--flag); font-weight: 700; }
+
+  /* ---------- Panels ---------- */
+  .panel{ display:none; }
+  .panel.active{ display:block; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .panel-head{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 18px; gap: 16px; flex-wrap: wrap; }
+  .panel-h1{ font-family:'Oswald', sans-serif; font-size: 20px; font-weight: 600; margin: 0 0 4px; text-transform: uppercase; letter-spacing:0.01em; }
+  .panel-sub{ font-size: 12.5px; color: var(--slate); margin:0; max-width: 600px; line-height: 1.5; }
+
+  .grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .grid-3{ grid-template-columns: repeat(3, 1fr); }
+  .grid-4{ grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 900px){ .grid-3, .grid-4{ grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 600px){ .grid, .grid-3, .grid-4{ grid-template-columns: 1fr; } }
+
+  .card{ background: var(--white); border: 1.5px solid var(--line); padding: 16px 18px; box-shadow: var(--shadow); }
+  .card-title{ font-size: 13px; font-weight: 700; margin: 0 0 4px; display:flex; align-items:center; gap:8px; }
+  .card-eyebrow{ font-family:'Space Mono', monospace; font-size: 10px; color: var(--slate-light); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+
+  .tag{ display:inline-flex; align-items:center; gap:5px; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 2px; font-family:'Space Mono', monospace; letter-spacing: 0.02em; text-transform:uppercase; }
+  .tag-done{ background: var(--sage-soft); color: var(--sage); }
+  .tag-progress{ background: var(--flag-soft); color: var(--flag); }
+  .tag-risk{ background: var(--rust-soft); color: var(--rust); }
+  .tag-neutral{ background: var(--paper-2); color: var(--slate); }
+  .tag-stakeholder{ background: var(--petrol-soft); color: var(--petrol); }
+
+  .dot{ width:6px; height:6px; border-radius:50%; display:inline-block; }
+  .dot-done{ background: var(--sage); }
+  .dot-progress{ background: var(--flag); }
+  .dot-risk{ background: var(--rust); }
+
+  .pbar{ height: 7px; background: var(--paper-2); overflow:hidden; margin-top: 10px; border: 1px solid var(--line); }
+  .pbar-fill{ height:100%; background: var(--flag); }
+  .pbar-fill.forest{ background: var(--sage); }
+
+  .row-list{ display:flex; flex-direction:column; gap:9px; }
+  .row{ display:flex; align-items:center; justify-content:space-between; padding: 12px 14px; background: var(--paper); border: 1px solid var(--line); gap: 12px; flex-wrap:wrap; }
+  .row-left{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .row-title{ font-size:13px; font-weight:700; }
+  .row-meta{ font-size:11.5px; color:var(--slate); margin-top:2px; }
+
+  .btn{
+    font-family:'Space Mono', monospace; font-size: 11.5px; font-weight: 700; padding: 9px 16px; border-radius: 2px;
+    border: 1.5px solid var(--ink); background: var(--ink); color: var(--paper); cursor:pointer; transition: opacity 0.15s ease;
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .btn:hover{ opacity:0.82; }
+  .btn-ghost{ background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+  .btn-ghost:hover{ background: var(--paper-2); opacity:1; }
+  .btn-sm{ padding: 6px 12px; font-size: 10.5px; }
+
+  .ai-box{
+    background: var(--petrol); border-radius: 2px; padding: 16px 19px;
+    color: var(--paper); position:relative; overflow:hidden;
+    border-left: 4px solid var(--flag);
+  }
+  .ai-eyebrow{ font-family:'Space Mono', monospace; font-size: 10px; color: #E8B98A; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; position:relative; display:flex; align-items:center; gap:6px;}
+  .ai-text{ font-size: 12.5px; line-height: 1.6; color: #E4ECE9; margin:0; position:relative; }
+  .ai-text b{ color:#fff; font-weight:700; }
+
+  table.dt{ width:100%; border-collapse: collapse; font-size: 12.5px; }
+  table.dt th{ text-align:left; font-family:'Space Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-light); padding: 0 10px 8px; border-bottom: 1.5px solid var(--ink); font-weight:700; }
+  table.dt td{ padding: 11px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.dt tr:last-child td{ border-bottom:none; }
+
+  .section-label{ font-family:'Space Mono', monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--slate); margin: 24px 0 12px; display:flex; align-items:center; gap:8px;}
+  .section-label:first-child{ margin-top:0; }
+  .section-label::before{ content:'§'; color: var(--flag); font-weight:700; }
+  .section-label::after{ content:''; flex:1; height:1px; background: var(--line); }
+
+  .scenario-banner{
+    display:flex; align-items:center; gap:12px; background: var(--white); border: 1.5px dashed var(--flag);
+    padding: 10px 16px; margin-bottom: 18px; font-size: 12px; color: var(--ink);
+  }
+  .scenario-banner b{ color: var(--flag); font-family:'Space Mono', monospace; text-transform:uppercase; font-size:11px; }
+
+  .timeline{ position:relative; padding-left: 22px; }
+  .timeline::before{ content:''; position:absolute; left: 5px; top: 4px; bottom: 4px; width: 2px; background: var(--line); }
+  .tl-item{ position:relative; padding-bottom: 18px; }
+  .tl-item:last-child{ padding-bottom:0; }
+  .tl-dot{ position:absolute; left: -22px; top: 2px; width: 11px; height:11px; border-radius:50%; background: var(--white); border: 2px solid var(--slate-light); }
+  .tl-item.done .tl-dot{ background: var(--sage); border-color: var(--sage); }
+  .tl-item.current .tl-dot{ background: var(--flag); border-color: var(--flag); box-shadow: 0 0 0 3px var(--flag-soft); }
+  .tl-date{ font-family:'Space Mono', monospace; font-size:10px; color:var(--slate-light); text-transform:uppercase; }
+  .tl-title{ font-size: 13px; font-weight:700; margin: 2px 0 3px; }
+  .tl-desc{ font-size: 12px; color:var(--slate); line-height:1.5; }
+
+  textarea.demo-input, input.demo-input{
+    width:100%; font-family:'Archivo', sans-serif; font-size: 13px; padding: 10px 12px; border: 1.5px solid var(--line);
+    border-radius: 2px; background: var(--white); color: var(--ink); resize: vertical;
+  }
+  textarea.demo-input:focus, input.demo-input:focus{ outline: none; border-color: var(--flag); }
+  label.field-label{ font-size: 11px; font-weight:700; color: var(--slate); display:block; margin-bottom: 6px; font-family:'Space Mono', monospace; text-transform:uppercase; letter-spacing:0.03em; }
+
+  .chart-area{ height: 150px; display:flex; align-items:flex-end; gap: 10px; padding: 0 4px; }
+  .bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .bar{ width: 100%; background: var(--paper-2); position:relative; height:100px; border: 1px solid var(--line); border-bottom:none;}
+  .bar-fill{ width:100%; background: var(--flag); position:absolute; bottom:0; left:0; transition: height 0.6s ease; }
+  .bar-label{ font-size:10px; color: var(--slate); font-family:'Space Mono', monospace; text-transform:uppercase; }
+
+  .footer-nav{ display:flex; justify-content:space-between; margin-top: 28px; padding-top: 18px; border-top: 1.5px solid var(--ink); }
+
+  .empty-note{ font-size: 12px; color: var(--slate-light); font-style: italic; padding: 16px; text-align:center; }
+
+  /* ---------- Evidence type chips ---------- */
+  .evidence-chip{
+    display:inline-flex; align-items:center; gap:5px; font-size: 10px; font-weight:700;
+    padding: 3px 9px 3px 7px; border-radius: 2px; font-family:'Space Mono', monospace; text-transform:uppercase;
+  }
+  .ev-survey{ background: var(--petrol-soft); color: var(--petrol); }
+  .ev-document{ background: var(--paper-2); color: var(--slate); }
+  .ev-audit{ background: var(--rust-soft); color: var(--rust); }
+
+  .evidence-row{
+    border: 1px solid var(--line); padding: 13px 15px; background: var(--white);
+    margin-bottom: 10px;
+  }
+  .evidence-row-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap; }
+  .evidence-title{ font-size:12.5px; font-weight:700; margin-bottom:3px; }
+  .evidence-meta{ font-size:11px; color:var(--slate); font-family:'Space Mono', monospace; }
+
+  /* ---------- Comment thread ---------- */
+  .thread{ margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 12px; }
+  .thread-toggle{
+    font-size: 11px; font-weight: 700; color: var(--petrol); cursor: pointer; display:inline-flex; align-items:center; gap:5px;
+    font-family:'Space Mono', monospace; text-transform:uppercase; letter-spacing:0.02em;
+  }
+  .thread-body{ display:none; margin-top: 10px; }
+  .thread-body.open{ display:block; }
+  .comment{ display:flex; gap:9px; margin-bottom: 11px; align-items:flex-start; }
+  .comment-avatar{
+    width: 26px; height:26px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    font-size: 10px; font-weight:700; color:#fff; font-family:'Space Mono', monospace;
+  }
+  .av-sme{ background: var(--flag); }
+  .av-buyer{ background: var(--petrol); }
+  .av-bank{ background: var(--sage); }
+  .av-auditor{ background: var(--rust); }
+  .av-ai{ background: var(--ink); position:relative; }
+  .comment-body{ flex:1; min-width:0; }
+  .comment-name{ font-size: 11.5px; font-weight:700; }
+  .comment-name .role{ font-weight:500; color: var(--slate-light); margin-left:4px; font-family:'Space Mono', monospace; text-transform:uppercase; font-size:10px; }
+  .comment-text{ font-size: 12px; color: var(--ink); line-height:1.5; margin-top:2px; }
+  .comment.ai-comment .comment-text{ background: var(--flag-soft); padding: 8px 10px; border-radius: 2px; margin-top:4px; }
+  .comment-input-row{ display:flex; gap:8px; margin-top:8px; }
+  .comment-input-row input{ flex:1; }
+
+  /* ---------- Stakeholder selector ---------- */
+  .stakeholder-bar{
+    display:flex; gap:0; margin-bottom: 22px; flex-wrap:wrap; border: 1.5px solid var(--ink);
+  }
+  .sh-chip{
+    display:flex; align-items:center; gap:8px; padding: 10px 16px; border-right: 1.5px solid var(--ink);
+    background: var(--white); cursor:pointer; transition: all 0.15s ease;
+  }
+  .sh-chip:last-child{ border-right:none; }
+  .sh-chip:hover{ background: var(--paper-2); }
+  .sh-chip.active{ background: var(--ink); }
+  .sh-chip.active .sh-name, .sh-chip.active .sh-meta{ color: var(--paper); }
+  .sh-avatar{ width: 28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; background:var(--paper-2); }
+  .sh-name{ font-size: 12px; font-weight:700; }
+  .sh-meta{ font-size: 10px; color: var(--slate); font-family:'Space Mono', monospace; text-transform:uppercase; }
+
+  .report-tabs{ display:flex; gap:0; margin-bottom: 18px; flex-wrap:wrap; border: 1px solid var(--line);}
+  .report-tab{
+    font-size: 11.5px; font-weight:700; padding: 9px 14px; cursor:pointer; color: var(--slate);
+    background: var(--paper-2); border-right:1px solid var(--line); font-family:'Space Mono', monospace; text-transform:uppercase; letter-spacing:0.02em;
+  }
+  .report-tab:last-child{ border-right:none; }
+  .report-tab.active{ background: var(--ink); color: var(--paper); }
+
+  ::-webkit-scrollbar{ height:6px; }
+  ::-webkit-scrollbar-thumb{ background: var(--line); border-radius:3px; }
+
+  /* ---------- Login screen ---------- */
+  .login-screen{
+    min-height: 100vh; display:flex; align-items:center; justify-content:center; padding: 40px 20px;
+  }
+  .login-card{
+    max-width: 720px; width:100%; background: var(--white); border: 1.5px solid var(--ink);
+    box-shadow: var(--shadow); padding: 36px 40px;
+  }
+  .login-head{ display:flex; align-items:center; gap:14px; margin-bottom: 26px; border-bottom: 3px double var(--ink); padding-bottom:18px;}
+  .login-head .brand-mark{ width:42px; height:42px; font-size:11px; }
+  .login-title{ font-family:'Oswald', sans-serif; font-size:22px; font-weight:600; text-transform:uppercase; letter-spacing:0.01em; }
+  .login-sub{ font-size:11px; color:var(--slate); font-family:'Space Mono', monospace; margin-top:2px; text-transform:uppercase; letter-spacing:0.05em;}
+
+  .login-step-label{ font-family:'Space Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color: var(--flag); margin-bottom:12px; }
+
+  .account-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:8px; }
+  @media (max-width:560px){ .account-grid{ grid-template-columns:1fr; } }
+  .account-card{
+    border: 1.5px solid var(--line); padding: 14px 16px; cursor:pointer; transition: all 0.15s ease;
+    display:flex; align-items:center; gap:12px; background: var(--paper);
+  }
+  .account-card:hover{ border-color: var(--ink); }
+  .account-card-icon{ width:34px; height:34px; border-radius:50%; background:var(--paper-2); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .account-card-name{ font-size:13px; font-weight:700; }
+  .account-card-meta{ font-size:10.5px; color:var(--slate); font-family:'Space Mono', monospace; text-transform:uppercase; margin-top:2px;}
+
+  .user-list{ display:flex; flex-direction:column; gap:8px; margin-bottom: 18px; }
+  .user-row{
+    display:flex; align-items:center; justify-content:space-between; border: 1.5px solid var(--line);
+    padding: 12px 16px; cursor:pointer; transition: all 0.15s ease; background: var(--paper);
+  }
+  .user-row:hover{ border-color: var(--ink); background: var(--white); }
+  .user-row-left{ display:flex; align-items:center; gap:12px; }
+  .user-row-avatar{ width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; font-family:'Space Mono', monospace; }
+  .user-row-name{ font-size:13px; font-weight:700; }
+  .user-row-role{ font-size:10.5px; color:var(--slate); font-family:'Space Mono', monospace; text-transform:uppercase; margin-top:1px; }
+  .role-badge{
+    font-size:9.5px; font-weight:700; padding:3px 8px; font-family:'Space Mono', monospace; text-transform:uppercase;
+    border:1px solid currentColor;
+  }
+  .role-admin{ color: var(--flag); }
+  .role-editor{ color: var(--petrol); }
+  .role-viewer{ color: var(--slate); }
+
+  .login-back{ font-size:11px; font-family:'Space Mono', monospace; text-transform:uppercase; color:var(--slate); cursor:pointer; display:inline-flex; align-items:center; gap:6px; margin-bottom:16px; }
+  .login-back:hover{ color:var(--ink); }
+
+  .session-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    font-size:11px; color:var(--slate); margin-bottom:14px; font-family:'Space Mono', monospace; text-transform:uppercase;
+  }
+  .session-left{ display:flex; align-items:center; gap:10px; }
+  .session-avatar{ width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:#fff; }
+  .session-logout{ cursor:pointer; text-decoration:underline; }
+  .session-logout:hover{ color:var(--ink); }
+
+  /* viewer-locked controls */
+  .locked{ opacity:0.45; cursor:not-allowed !important; position:relative; }
+  .locked:hover{ opacity:0.45 !important; }
+  .lock-note{ font-size:10px; color:var(--slate-light); font-family:'Space Mono', monospace; text-transform:uppercase; margin-top:6px; }
+
+  /* ---------- Upload zone ---------- */
+  .upload-zone{
+    border: 1.5px dashed var(--line); padding: 22px; text-align:center; cursor:pointer; transition: all 0.15s ease;
+    background: var(--paper);
+  }
+  .upload-zone:hover{ border-color: var(--flag); background: var(--white); }
+  .upload-zone-icon{ font-size:22px; margin-bottom:8px; }
+  .upload-zone-text{ font-size:12.5px; font-weight:700; }
+  .upload-zone-sub{ font-size:10.5px; color:var(--slate); font-family:'Space Mono', monospace; text-transform:uppercase; margin-top:4px;}
+  .doc-type-row{ display:flex; gap:8px; margin-top:14px; justify-content:center; flex-wrap:wrap; }
+  .doc-type-btn{
+    font-size:10.5px; font-weight:700; padding:7px 13px; border:1.5px solid var(--line); cursor:pointer;
+    font-family:'Space Mono', monospace; text-transform:uppercase; background:var(--white);
+  }
+  .doc-type-btn:hover{ border-color: var(--ink); }
+  .doc-type-btn.selected{ background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .upload-progress{ margin-top:14px; }
+  .upload-file-row{
+    display:flex; align-items:center; justify-content:space-between; border:1px solid var(--line); padding:10px 14px;
+    margin-top:10px; background:var(--white);
+  }
+  .upload-file-name{ font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px; }
+  .upload-status{ font-size:10.5px; font-family:'Space Mono', monospace; text-transform:uppercase; color:var(--slate); }
+  .upload-status.processing{ color: var(--flag); }
+  .upload-status.done{ color: var(--sage); }
+
+  /* ---------- Regulatory coverage ---------- */
+  .reg-chip{
+    display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; padding:4px 10px;
+    border:1px solid currentColor; font-family:'Space Mono', monospace; text-transform:uppercase; margin:2px;
+  }
+  .reg-card{ border:1.5px solid var(--line); background:var(--white); padding:15px 17px; }
+  .reg-status-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; flex-wrap:wrap;}
+  .reg-name{ font-size:13px; font-weight:700; }
+  .reg-region{ font-size:10px; color:var(--slate-light); font-family:'Space Mono', monospace; text-transform:uppercase; }
+  .reg-desc{ font-size:11.5px; color:var(--slate); line-height:1.5; margin-top:4px;}
+  .reg-relevance{ font-size:11px; line-height:1.5; margin-top:8px; padding-top:8px; border-top:1px dashed var(--line); }
+</style>
+</head>
+<body>
+
+<div id="loginRoot"></div>
+<div id="appRoot" style="display:none;">
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">DR</div>
+      <div>
+        <div class="brand-name">DueReady AI</div>
+        <div class="brand-tag">OECD &amp; UNGP-aligned due diligence record</div>
+      </div>
+    </div>
+    <div class="org-select">
+      <div class="org-name" id="topbarOrgName">Harbour Lane Sourcing Ltd.</div>
+      <div class="org-meta" id="topbarOrgMeta">Trading &amp; sourcing SME · Kwun Tong, Hong Kong · 22 staff</div>
+    </div>
+  </div>
+
+  <div class="session-bar" id="sessionBar"></div>
+
+  <div class="mode-switch" id="modeSwitch">
+    <div class="mode-btn" data-mode="sme">SME workspace</div>
+    <div class="mode-btn" data-mode="stakeholder">External stakeholder view</div>
+    <div class="mode-btn" data-mode="regulatory">Regulatory coverage</div>
+  </div>
+
+  <div id="modeContent"></div>
+
+</div>
+</div>
+
+<script>
+/* =====================================================================
+   ACCOUNTS & LOGIN
+===================================================================== */
+const ACCOUNTS = [
+  { id:'harbourlane', icon:'🏢', name:'Harbour Lane Sourcing Ltd.', meta:'SME · sourcing & trading',
+    orgMeta:'Trading & sourcing SME · Kwun Tong, Hong Kong · 22 staff',
+    users:[
+      { id:'hl_director', name:'M. Chow', role:'Operations Director', level:'admin', initials:'MC', avatarClass:'av-sme' },
+      { id:'hl_compliance', name:'T. Lai', role:'Compliance Officer', level:'editor', initials:'TL', avatarClass:'av-sme' },
+    ]},
+  { id:'overseasbrand', icon:'🛍️', name:'Overseas Brand Co.', meta:'Buyer / brand',
+    orgMeta:'Buyer / brand · reviewing Harbour Lane as Tier-1 sourcing partner',
+    users:[
+      { id:'ob_csr', name:'R. Tanaka', role:'CSR Manager', level:'admin', initials:'RT', avatarClass:'av-buyer' },
+      { id:'ob_analyst', name:'S. Wu', role:'Junior Analyst', level:'viewer', initials:'SW', avatarClass:'av-buyer' },
+    ]},
+  { id:'hengseng', icon:'🏦', name:'Heng Seng Trade Finance', meta:'Bank / lender',
+    orgMeta:'Trade finance lender · monitoring ESG-linked loan covenants',
+    users:[
+      { id:'hs_officer', name:'D. Patel', role:'Credit Risk Officer', level:'editor', initials:'DP', avatarClass:'av-bank' },
+    ]},
+  { id:'auditfirm', icon:'🔍', name:'Independent Auditor', meta:'Verification body',
+    orgMeta:'Third-party verification body · BSCI-aligned auditor',
+    users:[
+      { id:'au_lead', name:'C. Fernandes', role:'Lead Auditor', level:'editor', initials:'CF', avatarClass:'av-auditor' },
+    ]},
+];
+
+const ROLE_PERMISSIONS = {
+  admin:  { canSubmit:true,  canComment:true, canManageUsers:true,  label:'Full access' },
+  editor: { canSubmit:true,  canComment:true, canManageUsers:false, label:'Can submit & comment' },
+  viewer: { canSubmit:false, canComment:true, canManageUsers:false, label:'Read-only + comment' },
+};
+
+let session = null; // { account, user }
+let loginStep = 'account'; // 'account' | 'user'
+let pendingAccount = null;
+
+function currentPermissions(){
+  if(!session) return ROLE_PERMISSIONS.viewer;
+  return ROLE_PERMISSIONS[session.user.level];
+}
+
+function renderLogin(){
+  document.getElementById('appRoot').style.display = 'none';
+  document.getElementById('loginRoot').style.display = 'block';
+
+  if(loginStep === 'account'){
+    document.getElementById('loginRoot').innerHTML = `
+      <div class="login-screen">
+        <div class="login-card">
+          <div class="login-head">
+            <div class="brand-mark">DR</div>
+            <div>
+              <div class="login-title">DueReady AI</div>
+              <div class="login-sub">OECD &amp; UNGP-aligned due diligence record</div>
+            </div>
+          </div>
+          <div class="login-step-label">Step 1 of 2 — Select an organisation account</div>
+          <div class="account-grid" id="accountGrid">
+            ${ACCOUNTS.map(a => `
+              <div class="account-card" data-acct="${a.id}">
+                <div class="account-card-icon">${a.icon}</div>
+                <div>
+                  <div class="account-card-name">${a.name}</div>
+                  <div class="account-card-meta">${a.meta}</div>
+                </div>
+              </div>`).join('')}
+          </div>
+          <div class="lock-note" style="margin-top:14px;">Demo only — no real credentials required. Each organisation has multiple seats with different permission levels.</div>
+        </div>
+      </div>`;
+    document.getElementById('accountGrid').addEventListener('click', (e)=>{
+      const card = e.target.closest('.account-card'); if(!card) return;
+      pendingAccount = ACCOUNTS.find(a => a.id === card.getAttribute('data-acct'));
+      loginStep = 'user';
+      renderLogin();
+    });
+  } else {
+    const a = pendingAccount;
+    document.getElementById('loginRoot').innerHTML = `
+      <div class="login-screen">
+        <div class="login-card">
+          <div class="login-head">
+            <div class="brand-mark">DR</div>
+            <div>
+              <div class="login-title">${a.name}</div>
+              <div class="login-sub">${a.meta}</div>
+            </div>
+          </div>
+          <div class="login-back" id="loginBackBtn">← Choose a different organisation</div>
+          <div class="login-step-label">Step 2 of 2 — Select your seat</div>
+          <div class="user-list" id="userList">
+            ${a.users.map(u => `
+              <div class="user-row" data-user="${u.id}">
+                <div class="user-row-left">
+                  <div class="user-row-avatar ${u.avatarClass}">${u.initials}</div>
+                  <div>
+                    <div class="user-row-name">${u.name}</div>
+                    <div class="user-row-role">${u.role}</div>
+                  </div>
+                </div>
+                <div class="role-badge role-${u.level}">${u.level}</div>
+              </div>`).join('')}
+          </div>
+          <div class="lock-note">Permission level affects which actions are available once logged in — try comparing an "admin" seat with a "viewer" seat.</div>
+        </div>
+      </div>`;
+    document.getElementById('loginBackBtn').onclick = ()=>{ loginStep='account'; renderLogin(); };
+    document.getElementById('userList').addEventListener('click', (e)=>{
+      const row = e.target.closest('.user-row'); if(!row) return;
+      const user = a.users.find(u => u.id === row.getAttribute('data-user'));
+      session = { account: a, user: user };
+      enterApp();
+    });
+  }
+}
+
+function enterApp(){
+  document.getElementById('loginRoot').style.display = 'none';
+  document.getElementById('appRoot').style.display = 'block';
+  document.getElementById('topbarOrgName').textContent = session.account.name;
+  document.getElementById('topbarOrgMeta').textContent = session.account.orgMeta;
+
+  // default landing mode depends on account type
+  currentMode = session.account.id === 'harbourlane' ? 'sme' : 'stakeholder';
+  if(session.account.id === 'overseasbrand') currentStakeholder = 'buyer';
+  if(session.account.id === 'hengseng') currentStakeholder = 'bank';
+  if(session.account.id === 'auditfirm') currentStakeholder = 'auditor';
+
+  renderSessionBar();
+  render();
+}
+
+function renderSessionBar(){
+  const u = session.user;
+  const perms = currentPermissions();
+  document.getElementById('sessionBar').innerHTML = `
+    <div class="session-left">
+      <div class="session-avatar ${u.avatarClass}">${u.initials}</div>
+      <span>${u.name} — ${u.role}</span>
+      <span class="role-badge role-${u.level}">${u.level}</span>
+      <span>· ${perms.label}</span>
+    </div>
+    <div class="session-logout" id="logoutBtn">Switch account / log out</div>
+  `;
+  document.getElementById('logoutBtn').onclick = ()=>{
+    session = null; loginStep = 'account'; pendingAccount = null;
+    renderLogin();
+  };
+}
+
+/* Helper: wrap a control so it's disabled + locked for viewer-level users */
+function permGate(innerHtml, lockMessage){
+  if(currentPermissions().canSubmit) return innerHtml;
+  return innerHtml.replace(/<button/, '<button disabled class="locked" title="' + (lockMessage || 'Your role is read-only for this action') + '"');
+}
+
+/* =====================================================================
+   DATA
+===================================================================== */
+const STAGES = [
+  { id:0, code:'01', key:'embed', title:'Embed RBC into policy', short:'Embed',
+    desc:'Integrate responsible business conduct into company policies and management systems, with leadership commitment.' },
+  { id:1, code:'02', key:'identify', title:'Identify & assess adverse impacts', short:'Identify & assess',
+    desc:'Map actual and potential adverse impacts in operations, supply chain, and business relationships.' },
+  { id:2, code:'03', key:'mitigate', title:'Cease, prevent & mitigate', short:'Mitigate',
+    desc:'Stop, prevent, or reduce identified impacts through corrective action and changes in practice.' },
+  { id:3, code:'04', key:'track', title:'Track implementation', short:'Track',
+    desc:'Monitor whether actions are being implemented and whether adverse impacts are actually being addressed.' },
+  { id:4, code:'05', key:'communicate', title:'Communicate', short:'Communicate',
+    desc:'Account for how impacts are being addressed, to affected stakeholders, buyers, banks and the public.' },
+  { id:5, code:'06', key:'remediate', title:'Remediate', short:'Remediate',
+    desc:'Provide for or cooperate in remediation when the company has caused or contributed to adverse impacts.' },
+];
+
+const stageStatus = ['done','done','progress','progress','neutral','progress'];
+let currentStage = 0;
+let currentMode = 'sme';
+let currentStakeholder = 'buyer';
+let currentReportTab = {};
+
+/* =====================================================================
+   SVG CYCLE WHEEL
+===================================================================== */
+function buildCycleSvg(){
+  const svg = document.getElementById('cycleSvg');
+  if(!svg) return;
+  const cx=86, cy=86, r=64;
+  let html = '';
+  html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line)" stroke-width="1.5" />`;
+  for(let i=0;i<6;i++){
+    const a1 = (Math.PI*2*i/6) - Math.PI/2 + 0.32;
+    const a2 = (Math.PI*2*(i+1)/6) - Math.PI/2 - 0.32;
+    const x1 = cx + r*Math.cos(a1), y1 = cy + r*Math.sin(a1);
+    const x2 = cx + r*Math.cos(a2), y2 = cy + r*Math.sin(a2);
+    html += `<path d="M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}" fill="none" stroke="var(--line)" stroke-width="1.5" />`;
+  }
+  html += `<text x="${cx}" y="${cy-4}" text-anchor="middle" font-family="Space Mono, monospace" font-size="9" fill="var(--slate-light)" letter-spacing="0.5">RECORD</text>`;
+  html += `<text x="${cx}" y="${cy+10}" text-anchor="middle" font-family="Oswald, sans-serif" font-size="14" font-weight="600" fill="var(--ink)" id="centerStageLabel">01/06</text>`;
+  STAGES.forEach((s,i)=>{
+    const a = (Math.PI*2*i/6) - Math.PI/2;
+    const x = cx + r*Math.cos(a), y = cy + r*Math.sin(a);
+    const statusClass = stageStatus[i]==='done' ? 'done' : '';
+    html += `
+      <g class="stage-dot ${statusClass}" data-stage="${i}" onclick="goToStage(${i})">
+        <circle class="stage-dot-bg" cx="${x}" cy="${y}" r="15"></circle>
+        <text class="stage-dot-label" x="${x}" y="${y+4.5}" text-anchor="middle">${s.code}</text>
+      </g>`;
+  });
+  svg.innerHTML = html;
+}
+
+function refreshCycleActive(){
+  document.querySelectorAll('.stage-dot').forEach(el=>{
+    const idx = parseInt(el.getAttribute('data-stage'));
+    el.classList.toggle('active', idx === currentStage);
+  });
+  const lbl = document.getElementById('centerStageLabel');
+  if(lbl) lbl.textContent = STAGES[currentStage].code + '/06';
+}
+
+function goToStage(i){ currentStage = i; renderSme(); }
+
+/* =====================================================================
+   MODE SWITCH
+===================================================================== */
+document.getElementById('modeSwitch').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.mode-btn');
+  if(!btn) return;
+  currentMode = btn.getAttribute('data-mode');
+  render();
+});
+
+function render(){
+  // Harbour Lane sees SME workspace; external accounts see stakeholder view only.
+  // Everyone can see Regulatory coverage.
+  const isHarbourLane = session.account.id === 'harbourlane';
+  document.querySelectorAll('.mode-btn').forEach(b=>{
+    const m = b.getAttribute('data-mode');
+    b.classList.toggle('active', m===currentMode);
+    b.style.display = (m==='sme' && !isHarbourLane) ? 'none' : '';
+  });
+  if(currentMode==='sme') renderSme();
+  else if(currentMode==='regulatory') renderRegulatory();
+  else renderStakeholder();
+}
+
+/* =====================================================================
+   SME WORKSPACE
+===================================================================== */
+function renderSme(){
+  const s = STAGES[currentStage];
+  const tabsHtml = STAGES.map(st=>
+    `<div class="stage-tab ${st.id===currentStage?'active':''}" data-stage="${st.id}">${st.code} · ${st.short}</div>`
+  ).join('');
+
+  document.getElementById('modeContent').innerHTML = `
+    <div class="scenario-banner">
+      <span>🏢</span>
+      <div><b>Demo scenario:</b> Harbour Lane Sourcing is a Hong Kong trading/sourcing SME, placing orders with 6 manufacturing partners in Mainland China and Vietnam on behalf of 3 overseas retail brands. It sits between brand and factory — most of its real risk exposure is upstream, not on its own premises.</div>
+    </div>
+
+    <div class="cycle-wrap">
+      <div class="cycle-svg-holder"><svg id="cycleSvg" width="172" height="172" viewBox="0 0 172 172"></svg></div>
+      <div class="cycle-info">
+        <div class="cycle-eyebrow">Step ${s.code} / 06</div>
+        <h1 class="cycle-title">${s.title}</h1>
+        <p class="cycle-desc">${s.desc}</p>
+        <div class="cycle-source">Cycle structure follows the OECD Due Diligence Guidance for Responsible Business Conduct (2018) and the UN Guiding Principles on Business and Human Rights.</div>
+      </div>
+    </div>
+
+    <div class="stage-tabs" id="stageTabsWrap">${tabsHtml}</div>
+    <div id="panels"><div class="panel active">${PANEL_BUILDERS[currentStage]()}</div></div>
+
+    <div class="footer-nav">
+      <button class="btn btn-ghost" id="prevBtn" style="visibility:${currentStage===0?'hidden':'visible'}">← Previous step</button>
+      <button class="btn" id="nextBtn">${currentStage===5?'Restart cycle ↻':'Next step →'}</button>
+    </div>
+  `;
+
+  buildCycleSvg();
+  refreshCycleActive();
+
+  document.getElementById('stageTabsWrap').addEventListener('click', (e)=>{
+    const t = e.target.closest('.stage-tab'); if(!t) return;
+    currentStage = parseInt(t.getAttribute('data-stage')); renderSme();
+  });
+  document.getElementById('prevBtn').onclick = ()=>{ if(currentStage>0){ currentStage--; renderSme(); } };
+  document.getElementById('nextBtn').onclick = ()=>{ currentStage = currentStage===5?0:currentStage+1; renderSme(); };
+
+  attachThreadHandlers();
+  attachSubmitHandlers();
+  attachUploadHandlers();
+}
+
+/* ---------- Evidence chip + thread helper markup ---------- */
+function evidenceChip(type){
+  const map = {
+    survey: ['ev-survey','📋','Self-disclosure survey'],
+    document: ['ev-document','📄','Document upload'],
+    audit: ['ev-audit','🔍','Third-party audit'],
+  };
+  const [cls, icon, label] = map[type];
+  return `<span class="evidence-chip ${cls}">${icon} ${label}</span>`;
+}
+
+function thread(id, comments){
+  const commentsHtml = comments.map(c=>`
+    <div class="comment ${c.role==='ai'?'ai-comment':''}">
+      <div class="comment-avatar av-${c.role}">${c.role==='ai'?'▣':c.initials}</div>
+      <div class="comment-body">
+        <div class="comment-name">${c.name}<span class="role">${c.roleLabel}</span></div>
+        <div class="comment-text">${c.text}</div>
+      </div>
+    </div>`).join('');
+
+  return `
+    <div class="thread">
+      <div class="thread-toggle" data-thread="${id}">💬 ${comments.length} comment${comments.length===1?'':'s'} — view thread</div>
+      <div class="thread-body" id="thread-${id}">
+        ${commentsHtml}
+        <div class="comment-input-row">
+          <input class="demo-input" placeholder="Add a comment..." id="input-${id}">
+          <button class="btn btn-sm" data-reply="${id}">Send</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function attachThreadHandlers(){
+  document.querySelectorAll('.thread-toggle').forEach(t=>{
+    t.onclick = ()=>{
+      const body = document.getElementById('thread-' + t.getAttribute('data-thread'));
+      body.classList.toggle('open');
+    };
+  });
+  document.querySelectorAll('[data-reply]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const id = btn.getAttribute('data-reply');
+      const input = document.getElementById('input-' + id);
+      const body = document.getElementById('thread-' + id);
+      if(!input.value.trim()) return;
+      const u = session.user;
+      const div = document.createElement('div');
+      div.className = 'comment';
+      div.innerHTML = `
+        <div class="comment-avatar ${u.avatarClass}">${u.initials}</div>
+        <div class="comment-body">
+          <div class="comment-name">${u.name} <span class="role">${session.account.name}</span></div>
+          <div class="comment-text">${input.value}</div>
+        </div>`;
+      body.insertBefore(div, input.closest('.comment-input-row'));
+      input.value='';
+      // simulate AI joining the thread
+      setTimeout(()=>{
+        const aiDiv = document.createElement('div');
+        aiDiv.className = 'comment ai-comment';
+        aiDiv.innerHTML = `
+          <div class="comment-avatar av-ai">▣</div>
+          <div class="comment-body">
+            <div class="comment-name">DueReady AI <span class="role">assistant</span></div>
+            <div class="comment-text">Noted. I'll flag this update to anyone reviewing this item, and reflect it next time a stakeholder report is generated.</div>
+          </div>`;
+        body.insertBefore(aiDiv, input.closest('.comment-input-row'));
+      }, 500);
+    };
+  });
+}
+
+function attachSubmitHandlers(){
+  document.querySelectorAll('[data-ai-submit]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const targetId = btn.getAttribute('data-ai-submit');
+      const out = document.getElementById(targetId);
+      if(!out) return;
+      out.innerHTML = `<div class="empty-note">▣ AI is reviewing the submission...</div>`;
+      setTimeout(()=>{ out.innerHTML = AI_RESPONSES[targetId] || ''; }, 700);
+    };
+  });
+}
+
+/* ---------- Document upload + AI analysis ---------- */
+let selectedDocType = 'audit';
+
+const DOC_TYPE_ANALYSIS = {
+  audit: {
+    label: 'Third-party audit',
+    icon: '🔍',
+    analysis: `
+      <div class="ai-box" style="margin-top:14px;">
+        <div class="ai-eyebrow">▣ AI document analysis — audit report</div>
+        <p class="ai-text">
+          Identified as a <b>third-party social compliance audit</b> (BSCI-aligned format). Extracted 3 findings: 1 major non-conformance (excessive overtime, 68 hrs/week observed vs. 60 hr policy cap), 2 minor non-conformances (incomplete time records, missing fire drill log for Q1).<br><br>
+          <b>Cross-check:</b> the overtime finding is consistent with the self-disclosure survey already on file for this factory — no contradiction detected this time.<br><br>
+          <b>Suggested next step:</b> log the major non-conformance as a new corrective action in the Mitigate stage, linked to this audit as evidence.
+        </p>
+      </div>`,
+  },
+  policy: {
+    label: 'Policy document',
+    icon: '📄',
+    analysis: `
+      <div class="ai-box" style="margin-top:14px;">
+        <div class="ai-eyebrow">▣ AI document analysis — policy document</div>
+        <p class="ai-text">
+          Identified as a <b>supplier-facing policy document</b> (recruitment / labour standards type). Covers fee prohibition, working hours, and grievance access. Missing clauses commonly expected by buyers: <b>data protection for worker grievance records</b>, and <b>sub-contracting disclosure obligations</b>.<br><br>
+          <b>Suggested next step:</b> add the two missing clauses before next policy review cycle, and re-circulate to all 6 factory partners for signature.
+        </p>
+      </div>`,
+  },
+  survey: {
+    label: 'Survey response',
+    icon: '📋',
+    analysis: `
+      <div class="ai-box" style="margin-top:14px;">
+        <div class="ai-eyebrow">▣ AI document analysis — survey response</div>
+        <p class="ai-text">
+          Identified as a <b>self-disclosure survey response</b> from a factory partner. 14 of 16 questions answered with specific evidence; 2 answered vaguely (working hours, sub-contractor use) without supporting figures.<br><br>
+          <b>Suggested next step:</b> follow up directly on the 2 vague answers before treating this submission as resolved — self-disclosure alone is weighted lower than document or audit evidence when reconciling risk status.
+        </p>
+      </div>`,
+  },
+};
+
+function attachUploadHandlers(){
+  const zone = document.getElementById('uploadZone');
+  const input = document.getElementById('fileInput');
+  if(!zone || !input) return;
+
+  document.querySelectorAll('.doc-type-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      document.querySelectorAll('.doc-type-btn').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedDocType = btn.getAttribute('data-doctype');
+    };
+  });
+
+  zone.onclick = ()=>{
+    if(!currentPermissions().canSubmit){
+      document.getElementById('uploadResults').innerHTML =
+        `<div class="lock-note" style="margin-top:10px;">Your role (${session.user.level}) is read-only — uploads are not available on this seat.</div>`;
+      return;
+    }
+    input.click();
+  };
+
+  input.onchange = ()=>{
+    if(!input.files || !input.files.length) return;
+    const file = input.files[0];
+    const results = document.getElementById('uploadResults');
+    const docInfo = DOC_TYPE_ANALYSIS[selectedDocType];
+
+    results.innerHTML = `
+      <div class="upload-progress">
+        <div class="upload-file-row">
+          <div class="upload-file-name">${docInfo.icon} ${file.name}</div>
+          <div class="upload-status processing" id="uploadStatusLabel">Uploading...</div>
+        </div>
+      </div>`;
+
+    setTimeout(()=>{
+      const label = document.getElementById('uploadStatusLabel');
+      if(label){ label.textContent = 'Analysing with AI...'; }
+    }, 600);
+
+    setTimeout(()=>{
+      const label = document.getElementById('uploadStatusLabel');
+      if(label){ label.textContent = 'Analysis complete'; label.classList.remove('processing'); label.classList.add('done'); }
+      const analysisDiv = document.createElement('div');
+      analysisDiv.innerHTML = docInfo.analysis;
+      results.appendChild(analysisDiv);
+    }, 1700);
+  };
+}
+
+/* ---------- AI generated responses keyed by output div id ---------- */
+const AI_RESPONSES = {
+  draftOutput: `
+    <div class="ai-box" style="margin-top:14px;">
+      <div class="ai-eyebrow">▣ AI review complete</div>
+      <p class="ai-text">
+        <b>Draft action:</b> Request the manufacturing partner's recruitment agency contracts for the next hiring batch, and add a no-fee clause as a condition of the next purchase order.<br><br>
+        <b>Owner:</b> Harbour Lane Sourcing — Compliance &nbsp; <b>Target:</b> Next PO cycle &nbsp; <b>Linked stage:</b> Mitigate<br><br>
+        <i>This is a draft. A human reviewer should confirm before this becomes an approved action.</i>
+      </p>
+    </div>`,
+  surveyAiOutput: `
+    <div class="ai-box" style="margin-top:12px;">
+      <div class="ai-eyebrow">▣ AI comment on this submission</div>
+      <p class="ai-text">The self-disclosure response for <b>Factory Partner 2 (Dongguan)</b> mentions overtime is "occasionally above policy" without giving a frequency. This is vague relative to your buyer's reporting threshold. Suggest requesting time-record extracts for the last 3 pay cycles to corroborate before this is marked resolved.</p>
+    </div>`,
+  auditAiOutput: `
+    <div class="ai-box" style="margin-top:12px;">
+      <div class="ai-eyebrow">▣ AI comment on this submission</div>
+      <p class="ai-text">This third-party audit report (BSCI-aligned) was uploaded for <b>Factory Partner 1 (Hải Phòng)</b>. Cross-checking against the self-disclosure survey from the same partner: the survey claimed "no major findings" but the audit lists 2 minor and 1 major non-conformance. Recommend reconciling this gap with the partner directly before reporting to buyers.</p>
+    </div>`,
+};
+
+/* =====================================================================
+   PANEL BUILDERS — SME workspace, 6 stages
+===================================================================== */
+function panelEmbed(){
+  return `
+  <div class="panel-head">
+    <div>
+      <h2 class="panel-h1">Policy &amp; management system commitments</h2>
+      <p class="panel-sub">As a sourcing SME, Harbour Lane's own policies matter, but so does what it requires of the factories it places orders with.</p>
+    </div>
+    <span class="tag tag-done"><span class="dot dot-done"></span> 3 / 4 in place</span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-eyebrow">Policy document</div>
+      <div class="card-title">Supplier Code of Conduct ${evidenceChip('document')}</div>
+      <div class="row-meta" style="margin:6px 0 10px;">Sent to all 6 manufacturing partners · last revised Feb 2026</div>
+      <span class="tag tag-done"><span class="dot dot-done"></span> Active</span>
+      ${thread('embed1', [
+        {role:'sme', initials:'HL', name:'Harbour Lane Team', roleLabel:'SME', text:'Updated clause 4 to require disclosure of all sub-contracted factories.'},
+        {role:'ai', name:'DueReady AI', roleLabel:'assistant', text:'Good addition — sub-contracting visibility is one of the most common gaps buyers flag in sourcing-company due diligence. Consider also requiring partners to notify you before adding a new sub-contractor, not just disclose after the fact.'},
+      ])}
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Governance</div>
+      <div class="card-title">Named due diligence owner</div>
+      <div class="row-meta" style="margin:6px 0 10px;">Operations Director assigned Jan 2026, reports to Managing Director quarterly</div>
+      <span class="tag tag-done"><span class="dot dot-done"></span> Active</span>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Onboarding requirement</div>
+      <div class="card-title">Pre-contract supplier screening ${evidenceChip('survey')}</div>
+      <div class="row-meta" style="margin:6px 0 10px;">Self-disclosure survey required before any new factory is onboarded</div>
+      <span class="tag tag-done"><span class="dot dot-done"></span> Active</span>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Governance</div>
+      <div class="card-title">Board / ownership-level RBC review</div>
+      <div class="row-meta" style="margin:6px 0 10px;">No formal annual review by company directors recorded</div>
+      <span class="tag tag-risk"><span class="dot dot-risk"></span> Missing</span>
+    </div>
+  </div>
+
+  <div class="ai-box" style="margin-top:16px;">
+    <div class="ai-eyebrow">▣ DueReady AI note</div>
+    <p class="ai-text">As a sourcing company, Harbour Lane's biggest lever isn't its own four walls — it's <b>what it requires from manufacturing partners before placing an order</b>. The supplier code and pre-contract screening are good foundations. Suggested next action: add a standing item to quarterly director meetings to review due diligence findings.</p>
+  </div>
+  `;
+}
+
+function panelIdentify(){
+  return `
+  <div class="panel-head">
+    <div>
+      <h2 class="panel-h1">Risk &amp; impact mapping</h2>
+      <p class="panel-sub">Three evidence types feed this view: self-disclosure surveys from factory partners, uploaded documents, and third-party audit reports — shown side by side so gaps between them are visible.</p>
+    </div>
+    <span class="tag tag-risk"><span class="dot dot-risk"></span> 2 high-priority risks</span>
+  </div>
+
+  <div class="section-label">Upload a document for AI analysis</div>
+  <div class="card">
+    <div class="upload-zone" id="uploadZone">
+      <div class="upload-zone-icon">📤</div>
+      <div class="upload-zone-text">Click to choose a file, or drag one here</div>
+      <div class="upload-zone-sub">PDF, DOCX, XLSX — demo accepts any file</div>
+      <input type="file" id="fileInput" style="display:none;">
+    </div>
+    <div class="doc-type-row">
+      <div class="doc-type-btn selected" data-doctype="audit">🔍 Third-party audit</div>
+      <div class="doc-type-btn" data-doctype="policy">📄 Policy document</div>
+      <div class="doc-type-btn" data-doctype="survey">📋 Survey response</div>
+    </div>
+    <div id="uploadResults"></div>
+  </div>
+
+  <div class="section-label">Evidence intake — Factory Partner 2, Dongguan</div>
+  <div class="evidence-row">
+    <div class="evidence-row-top">
+      <div>
+        <div class="evidence-title">${evidenceChip('survey')} Self-disclosure: working hours &amp; overtime</div>
+        <div class="evidence-meta">Submitted by factory partner · 12 Jun 2026</div>
+      </div>
+      ${permGate(`<button class="btn btn-ghost btn-sm" data-ai-submit="surveyAiOutput">▣ Submit for AI review</button>`)}
+    </div>
+    <div id="surveyAiOutput"></div>
+    ${thread('identify1', [
+      {role:'sme', initials:'HL', name:'Harbour Lane Team', roleLabel:'SME', text:'Followed up with the factory — they confirmed overtime spikes only during Jul–Sep peak season.'},
+    ])}
+  </div>
+
+  <div class="evidence-row">
+    <div class="evidence-row-top">
+      <div>
+        <div class="evidence-title">${evidenceChip('audit')} Third-party audit report (BSCI-aligned)</div>
+        <div class="evidence-meta">Uploaded by buyer's nominated auditor · 03 May 2026 · Factory Partner 1, Hải Phòng</div>
+      </div>
+      ${permGate(`<button class="btn btn-ghost btn-sm" data-ai-submit="auditAiOutput">▣ Submit for AI review</button>`)}
+    </div>
+    <div id="auditAiOutput"></div>
+    ${thread('identify2', [
+      {role:'buyer', initials:'OB', name:'Overseas Brand Co.', roleLabel:'buyer', text:"Can you reconcile this with the self-disclosure survey? The findings don't match."},
+    ])}
+  </div>
+
+  <div class="section-label">Risk register</div>
+  <table class="dt">
+    <tr><th>Risk area</th><th>Source</th><th>Salience</th><th>Status</th></tr>
+    <tr>
+      <td><b>Excessive overtime</b><br><span class="row-meta">Factory Partner 2, peak season</span></td>
+      <td>${evidenceChip('survey')}</td>
+      <td><span class="tag tag-risk">High</span></td>
+      <td><span class="tag tag-progress">Action open</span></td>
+    </tr>
+    <tr>
+      <td><b>Audit / disclosure mismatch</b><br><span class="row-meta">Factory Partner 1</span></td>
+      <td>${evidenceChip('audit')}</td>
+      <td><span class="tag tag-risk">High</span></td>
+      <td><span class="tag tag-progress">Action open</span></td>
+    </tr>
+    <tr>
+      <td><b>Sub-contractor visibility</b><br><span class="row-meta">All partners</span></td>
+      <td>${evidenceChip('document')}</td>
+      <td><span class="tag tag-progress">Medium</span></td>
+      <td><span class="tag tag-done">Monitored</span></td>
+    </tr>
+  </table>
+
+  <div class="ai-box" style="margin-top:16px;">
+    <div class="ai-eyebrow">▣ How this was generated</div>
+    <p class="ai-text">DueReady AI weighs <b>self-disclosure, documents and independent audits differently</b> — an audit finding outweighs a self-disclosure claim when they conflict. This is why the audit/disclosure mismatch above is flagged high-salience even though no single source called it "high" on its own.</p>
+  </div>
+  `;
+}
+
+function panelMitigate(){
+  return `
+  <div class="panel-head">
+    <div>
+      <h2 class="panel-h1">Corrective action plans</h2>
+      <p class="panel-sub">Actions can be drafted by AI from a plain-language description, then reviewed jointly with the factory partner and, where relevant, the buyer.</p>
+    </div>
+    <span class="tag tag-progress"><span class="dot dot-progress"></span> 2 of 3 actions in progress</span>
+  </div>
+
+  <div class="row-list">
+    <div class="row">
+      <div class="row-left">
+        <span class="dot dot-progress"></span>
+        <div>
+          <div class="row-title">Reconcile audit vs. self-disclosure gap with Factory Partner 1</div>
+          <div class="row-meta">Owner: Harbour Lane Compliance · Target: 20 Jul 2026</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm">View plan</button>
+    </div>
+    <div class="row">
+      <div class="row-left">
+        <span class="dot dot-progress"></span>
+        <div>
+          <div class="row-title">Cap peak-season overtime, agree shift plan with Factory Partner 2</div>
+          <div class="row-meta">Owner: Operations Director · Target: 15 Aug 2026</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm">View plan</button>
+    </div>
+    <div class="row">
+      <div class="row-left">
+        <span class="dot dot-done"></span>
+        <div>
+          <div class="row-title">Add sub-contractor notification clause to all partner contracts</div>
+          <div class="row-meta">Owner: Operations Director · Completed 02 Jun 2026</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm">View plan</button>
+    </div>
+  </div>
+
+  <div class="section-label">Draft a new action with AI</div>
+  <div class="card">
+    <label class="field-label">Describe the issue in plain language</label>
+    <textarea class="demo-input" rows="2">Factory Partner 2's recruitment agency may be charging migrant workers a placement fee that isn't disclosed to us.</textarea>
+    <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+      ${permGate(`<button class="btn btn-sm" data-ai-submit="draftOutput">▣ Generate draft action plan</button>`)}
+    </div>
+    <div id="draftOutput"></div>
+  </div>
+  `;
+}
+
+function panelTrack(){
+  return `
+  <div class="panel-head">
+    <div>
+      <h2 class="panel-h1">Implementation tracking</h2>
+      <p class="panel-sub">Tracking pulls from the same evidence sources — survey check-ins, new documents, and follow-up audits — so progress isn't just self-reported.</p>
+    </div>
+    <span class="tag tag-progress"><span class="dot dot-progress"></span> On track, 1 action slipping</span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Factory Partner 2 — weekly avg. overtime hours</div>
+      <div class="chart-area">
+        <div class="bar-col"><div class="bar"><div class="bar-fill" style="height:92%;"></div></div><div class="bar-label">Mar</div></div>
+        <div class="bar-col"><div class="bar"><div class="bar-fill" style="height:85%;"></div></div><div class="bar-label">Apr</div></div>
+        <div class="bar-col"><div class="bar"><div class="bar-fill" style="height:74%;"></div></div><div class="bar-label">May</div></div>
+        <div class="bar-col"><div class="bar"><div class="bar-fill" style="height:68%;"></div></div><div class="bar-label">Jun</div></div>
+        <div class="bar-col"><div class="bar"><div class="bar-fill" style="height:60%; background:var(--forest);"></div></div><div class="bar-label">Target</div></div>
+      </div>
+      <div class="row-meta" style="text-align:center; margin-top:6px;">Source: ${evidenceChip('survey')} monthly check-in</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Action plan completion rate</div>
+      <div style="padding: 8px 0;">
+        <div class="row-meta" style="margin-bottom:6px;">Audit/disclosure reconciliation</div>
+        <div class="pbar"><div class="pbar-fill" style="width:35%;"></div></div>
+        <div class="row-meta" style="margin: 12px 0 6px;">Overtime cap rollout</div>
+        <div class="pbar"><div class="pbar-fill" style="width:70%;"></div></div>
+        <div class="row-meta" style="margin: 12px 0 6px;">Sub-contractor clause</div>
+        <div class="pbar"><div class="pbar-fill forest" style="width:100%;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ai-box" style="margin-top:16px;">
+    <div class="ai-eyebrow">▣ DueReady AI flag</div>
+    <p class="ai-text">The audit/disclosure reconciliation is <b>behind schedule</b> (35% complete, target 20 Jul). Since a buyer flagged this directly in the thread on the Identify stage, recommend prioritising a response this week rather than the next quarterly review.</p>
+  </div>
+  `;
+}
+
+function panelCommunicate(){
+  return `
+  <div class="panel-head">
+    <div>
+      <h2 class="panel-h1">Communicating progress</h2>
+      <p class="panel-sub">One evidence base, reshaped per audience. See the <b>External stakeholder view</b> (top of page) for the buyer / bank / investor / auditor side of this.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-3">
+    <div class="card">
+      <div class="card-eyebrow">For: Buyer</div>
+      <div class="card-title">Quarterly DD update</div>
+      <p class="row-meta" style="line-height:1.6;">Compliance-framed: findings, corrective actions, target dates, evidence references.</p>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">For: Bank / lender</div>
+      <div class="card-title">ESG-linked loan covenant report</div>
+      <p class="row-meta" style="line-height:1.6;">Risk-framed: trend data, exposure, whether agreed covenants are being met.</p>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">For: Investor</div>
+      <div class="card-title">Impact &amp; exposure summary</div>
+      <p class="row-meta" style="line-height:1.6;">Outcome-framed: what changed, what's still open, what it means for risk-adjusted returns.</p>
+    </div>
+  </div>
+
+  <div class="ai-box" style="margin-top:16px;">
+    <div class="ai-eyebrow">▣ Why this matters</div>
+    <p class="ai-text">Buyers, banks and investors ask overlapping but not identical questions. DueReady AI keeps <b>one underlying evidence base</b> and reshapes tone, framing and level of detail per audience — rather than three disconnected documents that drift out of sync with each other.</p>
+  </div>
+  `;
+}
+
+function panelRemediate(){
+  return `
+  <div class="panel-head">
+    <div>
+      <h2 class="panel-h1">Remediation case tracking</h2>
+      <p class="panel-sub">Where harm has occurred, remedy is tracked through to actual resolution for the affected worker — not closed when a policy is signed.</p>
+    </div>
+    <span class="tag tag-done"><span class="dot dot-done"></span> 1 case resolved this quarter</span>
+  </div>
+
+  <div class="card">
+    <div class="card-eyebrow">Case #RC-0042 · Factory Partner 1, Hải Phòng</div>
+    <div class="card-title">Undisclosed recruitment fee — worker grievance</div>
+    <div class="row-meta" style="margin-bottom:14px;">Raised via factory hotline, escalated to Harbour Lane 14 Mar 2026</div>
+
+    <div class="timeline">
+      <div class="tl-item done">
+        <div class="tl-dot"></div>
+        <div class="tl-date">14 Mar 2026</div>
+        <div class="tl-title">Grievance received &amp; escalated</div>
+        <div class="tl-desc">Factory partner notified Harbour Lane within 48 hours, as required by the supplier code.</div>
+      </div>
+      <div class="tl-item done">
+        <div class="tl-dot"></div>
+        <div class="tl-date">22 Mar 2026</div>
+        <div class="tl-title">Joint investigation</div>
+        <div class="tl-desc">Harbour Lane, factory HR, and buyer's regional CSR contact reviewed findings together.</div>
+      </div>
+      <div class="tl-item done">
+        <div class="tl-dot"></div>
+        <div class="tl-date">18 May 2026</div>
+        <div class="tl-title">Remedy agreed</div>
+        <div class="tl-desc">Full reimbursement to 14 workers; agency contract terminated; no-fee clause added going forward.</div>
+      </div>
+      <div class="tl-item current">
+        <div class="tl-dot"></div>
+        <div class="tl-date">In progress — target 30 Jul 2026</div>
+        <div class="tl-title">Disbursement &amp; verification</div>
+        <div class="tl-desc">6 of 14 workers reimbursed and confirmed satisfied to date.</div>
+      </div>
+    </div>
+    ${thread('remediate1', [
+      {role:'auditor', initials:'AU', name:'Independent Auditor', roleLabel:'auditor', text:'Requesting proof of disbursement for the 6 completed reimbursements for our verification file.'},
+      {role:'ai', name:'DueReady AI', roleLabel:'assistant', text:'I can compile the disbursement receipts already on file into a verification pack. Flagging to Harbour Lane to share with the auditor directly, since these include worker payment details.'},
+    ])}
+  </div>
+  `;
+}
+
+const PANEL_BUILDERS = [panelEmbed, panelIdentify, panelMitigate, panelTrack, panelCommunicate, panelRemediate];
+
+/* =====================================================================
+   REGULATORY COVERAGE
+   Status reflects publicly reported developments as of mid-2026,
+   including the EU Omnibus I simplification of CSRD/CSDDD (in force
+   18 Mar 2026). Demo data — verify current thresholds before relying
+   on this for real compliance decisions.
+===================================================================== */
+const REGULATIONS = [
+  {
+    id:'issb', name:'ISSB Standards (IFRS S1 / S2)', region:'International baseline', status:'relevant', statusLabel:'Tracked',
+    desc:'Global baseline sustainability and climate disclosure standards from the IFRS Foundation. Jurisdictions adopt or align locally rather than apply ISSB directly.',
+    relevance:'Hong Kong has formally aligned its reporting standards with ISSB. As a Hong Kong-incorporated SME, Harbour Lane is below any mandatory listed-company threshold today, but buyers and banks increasingly expect ISSB-aligned disclosure voluntarily as a condition of doing business.',
+  },
+  {
+    id:'csrd', name:'EU CSRD (Corporate Sustainability Reporting Directive)', region:'European Union', status:'indirect', statusLabel:'Indirect exposure',
+    desc:'EU corporate sustainability reporting regime. Following the Omnibus I simplification (in force 18 Mar 2026), mandatory scope is now narrowed to EU entities with over 1,000 employees and over €450m net turnover, with similar thresholds for non-EU groups with an EU presence.',
+    relevance:'Harbour Lane itself is far below scope. Relevance is indirect: its overseas brand buyers may be in scope and will request value-chain data — but the Omnibus reforms introduced a "value-chain cap" intended to limit what in-scope companies can demand from smaller partners like Harbour Lane.',
+  },
+  {
+    id:'csddd', name:'EU CSDDD (Corporate Sustainability Due Diligence Directive)', region:'European Union', status:'indirect', statusLabel:'Indirect exposure',
+    desc:'EU human rights and environmental due diligence duty across operations and value chains. Also narrowed by Omnibus I: now targets EU companies with 5,000+ employees and over €1.5bn turnover (or non-EU companies with €1.5bn+ EU turnover). Transposition due by 26 Jul 2028, application from 26 Jul 2029.',
+    relevance:"Harbour Lane is not directly in scope at any plausible size. But its largest buyers may be, and CSDDD due diligence duties run down the value chain — this is the regulation that most directly explains why a buyer might ask Harbour Lane for the kind of evidence this record keeps.",
+  },
+  {
+    id:'euflr', name:'EU Forced Labour Regulation', region:'European Union', status:'relevant', statusLabel:'Monitor',
+    desc:'Bans products made with forced labour from the EU market. Origin-neutral — unlike the US approach, it does not presume a region is high-risk. Enters full application 14 Dec 2027; the Commission must publish a forced-labour risk database and guidelines by 14 Jun 2026.',
+    relevance:"Directly relevant if any Harbour Lane-sourced goods reach the EU market through its brand customers. Worth monitoring the Commission's risk database once published, and cross-referencing it against Harbour Lane's own factory and region list.",
+  },
+  {
+    id:'uflpa', name:'US Uyghur Forced Labor Prevention Act (UFLPA)', region:'United States', status:'relevant', statusLabel:'High relevance',
+    desc:'Creates a rebuttable presumption that goods made wholly or partly in Xinjiang, or by listed entities, involve forced labour and are barred from US import. Burden of proof sits with the importer.',
+    relevance:'Material if Harbour Lane or its factory partners source any cotton, polysilicon, or other inputs connected to Xinjiang supply chains, or if any goods are bound for the US market through a buyer. This is the strictest-burden regime in this list.',
+  },
+  {
+    id:'modernslavery', name:'Modern Slavery Acts (UK / Australia)', region:'UK & Australia', status:'relevant', statusLabel:'Buyer-driven',
+    desc:'Reporting-based regimes requiring large companies to publish annual statements on steps taken to address modern slavery in their operations and supply chains.',
+    relevance:'No direct filing duty for Harbour Lane, but UK- and Australia-linked buyers will typically ask sourcing partners for input into their statements — this is usually where the request lands on an SME like Harbour Lane.',
+  },
+  {
+    id:'lksg', name:'Germany Supply Chain Act (LkSG)', region:'Germany', status:'indirect', statusLabel:'Indirect exposure',
+    desc:'German national due diligence law predating CSDDD, applying to large German companies with obligations cascading down their supply chains.',
+    relevance:'Relevant only if Harbour Lane supplies a German-headquartered brand directly or indirectly — worth flagging per-buyer rather than assuming company-wide.',
+  },
+];
+
+function renderRegulatory(){
+  const regHtml = REGULATIONS.map(r => `
+    <div class="reg-card" style="margin-bottom:10px;">
+      <div class="reg-status-row">
+        <div>
+          <span class="reg-name">${r.name}</span>
+          <div class="reg-region">${r.region}</div>
+        </div>
+        <span class="tag ${r.status==='relevant'?'tag-risk':'tag-neutral'}">${r.statusLabel}</span>
+      </div>
+      <div class="reg-desc">${r.desc}</div>
+      <div class="reg-relevance"><b>For Harbour Lane:</b> ${r.relevance}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('modeContent').innerHTML = `
+    <div class="scenario-banner">
+      <span>📚</span>
+      <div><b>How this works:</b> DueReady AI is kept current on due diligence and disclosure regulations as they are published and amended, and applies them to Harbour Lane's actual profile — flagging what's directly binding, what's indirect (via buyers), and what's just worth monitoring. This list is illustrative; real regulatory coverage should always be confirmed with current legal advice.</div>
+    </div>
+
+    <div class="panel-head">
+      <div>
+        <h2 class="panel-h1">Regulatory coverage</h2>
+        <p class="panel-sub">Mapped against Harbour Lane's actual profile: a Hong Kong sourcing SME, not directly in scope of most large-company regimes, but exposed indirectly through buyers and through where its factory partners' goods ultimately land.</p>
+      </div>
+    </div>
+
+    ${regHtml}
+
+    <div class="ai-box" style="margin-top:6px;">
+      <div class="ai-eyebrow">▣ DueReady AI note</div>
+      <p class="ai-text">Two regimes carry the most near-term weight for Harbour Lane specifically: <b>UFLPA</b>, given its strict reversed burden of proof, and the upcoming <b>EU Forced Labour Regulation risk database</b> (due by 14 Jun 2026), which will let Harbour Lane proactively check its factory partners' regions against published risk areas before a buyer asks. CSRD and CSDDD remain indirect for now — but worth re-checking if Harbour Lane's largest buyer grows past EU thresholds.</p>
+    </div>
+  `;
+}
+
+/* =====================================================================
+   STAKEHOLDER VIEW
+===================================================================== */
+const STAKEHOLDERS = [
+  { id:'buyer', icon:'🛍️', name:'Overseas Brand Co.', meta:'Buyer / brand', avatarClass:'av-buyer' },
+  { id:'bank', icon:'🏦', name:'Heng Seng Trade Finance', meta:'Bank / lender', avatarClass:'av-bank' },
+  { id:'investor', icon:'📈', name:'Delta Impact Partners', meta:'Investor', avatarClass:'av-buyer' },
+  { id:'auditor', icon:'🔍', name:'Independent Auditor', meta:'Verification body', avatarClass:'av-auditor' },
+];
+
+const STAKEHOLDER_REPORTS = {
+  buyer: [
+    { id:'summary', label:'Compliance summary', content:`
+      <div class="grid">
+        <div class="card">
+          <div class="card-eyebrow">AI-generated · for buyer review</div>
+          <div class="card-title">Q2 2026 due diligence summary — Harbour Lane Sourcing</div>
+          <p class="row-meta" style="line-height:1.7; margin-top:8px;">2 high-priority risks open across the supplier base. 1 audit/self-disclosure mismatch under active reconciliation (target 20 Jul). 1 remediation case 43% disbursed, on track for 30 Jul close. No new grievances raised this quarter.</p>
+          <div style="margin-top:10px;"><span class="tag tag-progress">2 open risks</span> <span class="tag tag-done">1 case resolved</span></div>
+        </div>
+        <div class="ai-box">
+          <div class="ai-eyebrow">▣ AI flag for this buyer</div>
+          <p class="ai-text">The audit/disclosure mismatch on Factory Partner 1 is the item most likely to affect your supplier scorecard this quarter. Recommend requesting a direct update before your Q3 review.</p>
+        </div>
+      </div>
+      ${thread('buyer_report', [
+        {role:'buyer', initials:'OB', name:'Overseas Brand Co.', roleLabel:'buyer', text:'Thanks — please prioritise closing the reconciliation gap before our July audit window.'},
+        {role:'sme', initials:'HL', name:'Harbour Lane Team', roleLabel:'SME', text:'Acknowledged, targeting 20 Jul as noted.'},
+      ])}
+    `},
+    { id:'evidence', label:'Evidence trail', content:`
+      <table class="dt">
+        <tr><th>Item</th><th>Type</th><th>Date</th><th>Status</th></tr>
+        <tr><td>Factory 2 overtime disclosure</td><td>${evidenceChip('survey')}</td><td>12 Jun 2026</td><td><span class="tag tag-progress">Under review</span></td></tr>
+        <tr><td>Factory 1 BSCI audit</td><td>${evidenceChip('audit')}</td><td>03 May 2026</td><td><span class="tag tag-risk">Mismatch flagged</span></td></tr>
+        <tr><td>Sub-contractor clause, all partners</td><td>${evidenceChip('document')}</td><td>02 Jun 2026</td><td><span class="tag tag-done">Complete</span></td></tr>
+      </table>
+    `},
+  ],
+  bank: [
+    { id:'covenant', label:'ESG-linked loan report', content:`
+      <div class="grid">
+        <div class="card">
+          <div class="card-eyebrow">AI-generated · for trade finance review</div>
+          <div class="card-title">ESG covenant status — Harbour Lane Sourcing</div>
+          <p class="row-meta" style="line-height:1.7; margin-top:8px;">Covenant: maintain documented grievance mechanism across 100% of contracted factories. Status: met (6/6 partners). Covenant: zero unremediated grievances older than 120 days. Status: met — current case at day 103, on track for closure within terms.</p>
+          <div style="margin-top:10px;"><span class="tag tag-done">Covenants met</span></div>
+        </div>
+        <div class="ai-box">
+          <div class="ai-eyebrow">▣ AI note for this lender</div>
+          <p class="ai-text">No covenant breach risk this period. The open remediation case is within the 120-day window but worth monitoring — disbursement is at 43% with 27 days remaining.</p>
+        </div>
+      </div>
+      ${thread('bank_report', [
+        {role:'bank', initials:'HS', name:'Heng Seng Trade Finance', roleLabel:'bank', text:'Please confirm disbursement completion before the covenant deadline so we can close this review cycle.'},
+      ])}
+    `},
+  ],
+  investor: [
+    { id:'impact', label:'Impact & exposure summary', content:`
+      <div class="grid">
+        <div class="card">
+          <div class="card-eyebrow">AI-generated · for impact reporting</div>
+          <div class="card-title">Quarterly impact &amp; exposure note</div>
+          <p class="row-meta" style="line-height:1.7; margin-top:8px;">14 workers remediated for undisclosed recruitment fees (6 disbursed, 8 in progress). Overtime trending down 35% since March across the highest-risk factory partner. No labour-related work stoppages or media exposure this period.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Risk exposure trend</div>
+          <div class="chart-area">
+            <div class="bar-col"><div class="bar"><div class="bar-fill" style="height:90%; background:var(--rust);"></div></div><div class="bar-label">Q1</div></div>
+            <div class="bar-col"><div class="bar"><div class="bar-fill" style="height:60%; background:var(--ochre);"></div></div><div class="bar-label">Q2</div></div>
+            <div class="bar-col"><div class="bar"><div class="bar-fill" style="height:35%; background:var(--forest);"></div></div><div class="bar-label">Q3 (proj.)</div></div>
+          </div>
+        </div>
+      </div>
+      ${thread('investor_report', [
+        {role:'ai', name:'DueReady AI', roleLabel:'assistant', text:'This summary aggregates and anonymises case-level detail. Full case files remain available to the buyer and auditor only, per the data-sharing agreement.'},
+      ])}
+    `},
+  ],
+  auditor: [
+    { id:'verification', label:'Verification pack', content:`
+      <div class="grid">
+        <div class="card">
+          <div class="card-eyebrow">For: Independent Auditor</div>
+          <div class="card-title">Open verification requests</div>
+          <div class="row-list" style="margin-top:10px;">
+            <div class="row">
+              <div class="row-left"><span class="dot dot-progress"></span><div><div class="row-title">Disbursement receipts, Case #RC-0042</div><div class="row-meta">6 of 14 receipts available now</div></div></div>
+              <button class="btn btn-ghost btn-sm">Download pack</button>
+            </div>
+            <div class="row">
+              <div class="row-left"><span class="dot dot-done"></span><div><div class="row-title">Sub-contractor clause — signed copies, all partners</div><div class="row-meta">Available</div></div></div>
+              <button class="btn btn-ghost btn-sm">Download pack</button>
+            </div>
+          </div>
+        </div>
+        <div class="ai-box">
+          <div class="ai-eyebrow">▣ AI note for auditor</div>
+          <p class="ai-text">The audit/self-disclosure mismatch your firm flagged on Factory Partner 1 is still open. Reconciliation evidence will be added to this pack once Harbour Lane's compliance team completes its response, targeted 20 Jul.</p>
+        </div>
+      </div>
+      ${thread('auditor_report', [
+        {role:'auditor', initials:'AU', name:'Independent Auditor', roleLabel:'auditor', text:'Requesting proof of disbursement for the 6 completed reimbursements for our verification file.'},
+        {role:'ai', name:'DueReady AI', roleLabel:'assistant', text:'Compiled — see the verification pack above. Flagging to Harbour Lane to confirm sharing permissions before this is finalised.'},
+      ])}
+    `},
+  ],
+};
+
+function renderStakeholder(){
+  const isHarbourLane = session.account.id === 'harbourlane';
+  // External accounts are locked to their own stakeholder identity; only Harbour Lane can browse all views.
+  const visibleStakeholders = isHarbourLane ? STAKEHOLDERS : STAKEHOLDERS.filter(sh => sh.id === currentStakeholder);
+
+  const chipsHtml = visibleStakeholders.map(sh => `
+    <div class="sh-chip ${sh.id===currentStakeholder?'active':''} ${isHarbourLane?'':'locked'}" data-sh="${sh.id}" ${isHarbourLane?'':'title="Your account is logged in as this stakeholder"'}>
+      <div class="sh-avatar" style="background: var(--paper-2);">${sh.icon}</div>
+      <div>
+        <div class="sh-name">${sh.name}</div>
+        <div class="sh-meta">${sh.meta}</div>
+      </div>
+    </div>`).join('');
+
+  if(!currentReportTab[currentStakeholder]){
+    currentReportTab[currentStakeholder] = STAKEHOLDER_REPORTS[currentStakeholder][0].id;
+  }
+  const reports = STAKEHOLDER_REPORTS[currentStakeholder];
+  const tabsHtml = reports.map(r =>
+    `<div class="report-tab ${r.id===currentReportTab[currentStakeholder]?'active':''}" data-report="${r.id}">${r.label}</div>`
+  ).join('');
+  const activeReport = reports.find(r => r.id === currentReportTab[currentStakeholder]);
+
+  const bannerText = isHarbourLane
+    ? "Collaboration layer: the same underlying evidence from Harbour Lane's workspace, reshaped per stakeholder by AI, with a live comment thread back to the SME."
+    : `You're viewing the ${STAKEHOLDERS.find(s=>s.id===currentStakeholder).name} report — generated by AI from Harbour Lane's underlying due diligence record. Comments here go directly to Harbour Lane.`;
+
+  const regenBtn = permGate(`<button class="btn btn-ghost btn-sm">▣ Regenerate report from latest data</button>`,
+    'Viewer seats cannot trigger report regeneration');
+
+  document.getElementById('modeContent').innerHTML = `
+    <div class="scenario-banner" style="border-color: var(--petrol); color:#1B3536;">
+      <span>🔗</span>
+      <div><b>${isHarbourLane?'Collaboration layer':'Stakeholder report'}:</b> ${bannerText}</div>
+    </div>
+
+    ${isHarbourLane ? '<div class="section-label">Choose a stakeholder to view as</div>' : ''}
+    <div class="stakeholder-bar" id="stakeholderBar">${chipsHtml}</div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:10px;">
+      <div class="report-tabs" id="reportTabs">${tabsHtml}</div>
+      ${regenBtn}
+    </div>
+
+    <div id="reportContent">${activeReport.content}</div>
+  `;
+
+  document.getElementById('stakeholderBar').addEventListener('click', (e)=>{
+    if(!isHarbourLane) return; // locked for external accounts
+    const chip = e.target.closest('.sh-chip'); if(!chip) return;
+    currentStakeholder = chip.getAttribute('data-sh');
+    renderStakeholder();
+  });
+  document.getElementById('reportTabs').addEventListener('click', (e)=>{
+    const tab = e.target.closest('.report-tab'); if(!tab) return;
+    currentReportTab[currentStakeholder] = tab.getAttribute('data-report');
+    renderStakeholder();
+  });
+
+  attachThreadHandlers();
+}
+
+/* =====================================================================
+   INIT
+===================================================================== */
+renderLogin();
+</script>
+</body>
+</html>
